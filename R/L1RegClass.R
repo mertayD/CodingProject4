@@ -1,11 +1,12 @@
-LinearModelL1 <- function(X.scaled.mat, y.vec, penalty=10, opt.thresh=0.001, initial.weight.vec=NULL, step.size=0.4) {
+LinearModelL1 <- function(X.scaled.mat, y.vec, penalty=10, opt.thresh=0.001, initial.weight.vec=NULL, step.size=0.4) 
+  {
 
   # X.filtered <- X.sc[, attr(X.sc, "scaled:scale") != 0]
   # X.int <- cbind(1, X.filtered)
-  y.tilde <- ifelse(y.vec == 1, 1, -1)
   X.int <- X.scaled.mat
-
+  y.tilde <- ifelse(y.vec == 1, 1, -1)
   print(penalty)
+  
   ## First element is bias/intercept
   if(is.null(initial.weight.vec)) {
     w.vec <- rep(0, l=ncol(X.int))
@@ -14,6 +15,7 @@ LinearModelL1 <- function(X.scaled.mat, y.vec, penalty=10, opt.thresh=0.001, ini
   else{
     w.vec <- initial.weight.vec
   }
+  
   # Sigmoid Function
   sigmoid <- function(z){
     1/(1+exp(-z))
@@ -106,6 +108,7 @@ LinearModelL1 <- function(X.scaled.mat, y.vec, penalty=10, opt.thresh=0.001, ini
 
     # Check if sub-optimal
     b = w.vec[1]
+
     if(b < opt.thresh) {
       w.vec[-1] = 0
     }
@@ -118,7 +121,7 @@ LinearModelL1 <- function(X.scaled.mat, y.vec, penalty=10, opt.thresh=0.001, ini
   return(w.vec)
 }
 
-LinearModelL1penalties <- function(X.mat, y.vec, penalty.vec=c(10, 9, 8 ,7, 6, 5), step.size=0.4) {
+LinearModelL1penalties <- function(X.mat, y.vec, penalty.vec=c(10), step.size=0.4) {
   X.sc <- scale(X.mat)
   y.tilde <- ifelse(y.vec == 1, 1, -1)
   X.filtered <- X.sc[, attr(X.sc, "scaled:scale") != 0]
@@ -141,11 +144,12 @@ LinearModelL1penalties <- function(X.mat, y.vec, penalty.vec=c(10, 9, 8 ,7, 6, 5
   return(w.unsc)
 }
 
+
 LinearModelL1CV <- function(
   X.mat,
   y.vec,
   fold.vec=sample(rep(1:4, l=nrow(X.mat))),
-  n.folds=5,
+  n.folds=4,
   penalty.vec=c(5,4,3,2,1),
   step.size=0.5) {
 
@@ -167,13 +171,18 @@ LinearModelL1CV <- function(
 
   if(is.null(fold.vec))
   {
-    fold.vec <- sample(rep(1:4, l=nrow(X.mat)))
+    fold.vec <- sample(rep(1:5, l=nrow(X.mat)))
+    n.folds <- 5
   }
 
-  is.binary <- all(y.vec %in% c(1, -1))
+  is.binary <- all(y.vec %in% c(0, 1))
 
-  train.loss.mat <- matrix(, length(penalty.vec), n.folds)
-  validation.loss.mat <- matrix(, length(penalty.vec), n.folds)
+  if(is.binary) {
+    y.tilde <- ifelse(y.vec == 1, 1, -1)
+  }
+
+  train.loss.mat <- matrix(, ncol(X.mat), n.folds)
+  validation.loss.mat <- matrix(, ncol(X.mat), n.folds)
 
   # n.folds <- max(fold.vec)
   for(fold.i in 1:n.folds)
@@ -192,23 +201,29 @@ LinearModelL1CV <- function(
     for(prediction.set.name in c("train", "validation")){
       if(identical(prediction.set.name, "train")){
         W <- LinearModelL1penalties(X.train, Y.train)
-        pred.mat <- X.mat %*% t(W)
+
+        print(nrow(t(W)))
+        print(ncol(t(W)))
+        print(nrow(X.train))
+        print(ncol(X.train))
+
+        pred.mat <- X.train %*% t(W)
         if(is.binary)
         {
-          loss.mat <- ifelse(y.vec == 1, 1, -1) != train_labels
-          train.loss.mat[,fold.i] <- colMeans(loss.mat)
+          loss.mat <- ifelse(y.vec == 1, 1, -1) != Y.valid
+          train.loss.mat[, fold.i] <- colMeans(loss.mat)
         }
         else
         {
-          train.loss.mat[,fold.i] = colMeans((pred.mat - Y.train)^2)
+          train.loss.mat[, fold.i] = colMeans((pred.mat - Y.train)^2)
         }
       }
       else{
         W <- LinearModelL1penalties(X.train, y.train)
-        pred.mat <- cbind(1, X.mat) %*% W
+        pred.mat <- X.train %*% t(W)
         if(is.binary)
         {
-          loss.mat <- ifelse(y.vec == 1, 1, -1) != train_labels
+          loss.mat <- ifelse(y.vec == 1, 1, -1) != Y.train
           validation.loss.mat[,fold.i] = colMeans(loss.mat)
         }
         validation.loss.mat[,fold.i] = colMeans((pred.mat - Y.valid)^2)
@@ -219,7 +234,7 @@ LinearModelL1CV <- function(
   mean.train.loss.vec <- rowMeans(train.loss.mat)
   selected.steps = which.min(mean.validation.loss.vec)
   best_model <- LinearModelL1penalties(X.train, y.train, penalty.vec = c(selected.steps))
-  weight_vec <- best_model$pred.mat[,selected.steps]
+  weight_vec <- best_model[, selected.steps]
 
   list(
     mean.validation.loss = mean.validation.loss.vec,
@@ -248,4 +263,4 @@ X.mat <- zip.train[is.01, -1]
 
 X.sc <- scale(X.mat)
 
-LinearModelL1CV(X.mat, y.vec)
+#LinearModelL1CV(X.mat, y.vec)
