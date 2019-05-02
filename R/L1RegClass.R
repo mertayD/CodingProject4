@@ -265,4 +265,4 @@ X.mat <- zip.train[is.01, -1]
 X.mat <- X.mat[0:50, ]
 X.sc <- scale(X.mat)
 
-LinearModelL1CV(X.mat, y.vec)
+#LinearModelL1CV(X.mat, y.vec)
