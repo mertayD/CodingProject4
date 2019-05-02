@@ -8,5 +8,5 @@ context("test-L1")
 
 
 test_that("Dummy test", {
-  return TRUE
+  expect_equal(10, 10)
 })
