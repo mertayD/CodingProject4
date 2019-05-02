@@ -102,15 +102,10 @@ LinearModelL1CV <- function(X.mat, y.vec, fold.vec, n.folds=5, penalty.vec, step
   min(train.loss.mat)
 }
 
-data(zip.train, package = "ElemStatLearn")
-table(zip.train[, 1])
-table(zip.train[, 2])
-all.y.vec <- zip.train[, 1]
-is.01 <- all.y.vec %in% c(0,1)
-y.vec <- all.y.vec[is.01]
-X.mat <- zip.train[is.01, -1]
-
-table(is.01)
-
+# data(zip.train, package = "ElemStatLearn")
+# all.y.vec <- zip.train[, 1]
+# is.01 <- all.y.vec %in% c(0,1)
+# y.vec <- all.y.vec[is.01]
+# X.mat <- zip.train[is.01, -1]
 #LinearModelL1(X.mat=X.mat, y.vec=y.vec, penalty=10, opt.thresh=0.001,intial.weight.vec =  NULL, step.size = 0.1)
 #LinearModelL1penalties(X.mat, y.vec, )
