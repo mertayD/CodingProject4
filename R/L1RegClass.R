@@ -127,7 +127,7 @@ LinearModelL1penalties <- function(X.mat, y.vec, penalty.vec=c(10), step.size=0.
   X.int <- cbind(1, X.filtered)
 
   # Init matrix
-  W.mat <- matrix(0, nrow = length(X.int), ncol = ncol(X.int) + 1)
+  W.mat <- matrix(0, nrow = length(penalty.vec), ncol = ncol(X.int) + 1)
 
   new.w.vec=NULL
 
@@ -146,7 +146,7 @@ LinearModelL1penalties <- function(X.mat, y.vec, penalty.vec=c(10), step.size=0.
 LinearModelL1CV <- function(
   X.mat,
   y.vec,
-  fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+  fold.vec=sample(rep(1:5, l=nrow(X.mat))),
   n.folds=5,
   penalty.vec=c(5,4,3,2,1),
   step.size=0.5) {
@@ -197,17 +197,20 @@ LinearModelL1CV <- function(
 
     for(prediction.set.name in c("train", "validation")){
       if(identical(prediction.set.name, "train")){
+
         W <- LinearModelL1penalties(X.train, Y.train)
-
-        print(nrow(t(W)))
-        print(ncol(t(W)))
-        print(nrow(X.train))
+        print(ncol(W))
         print(ncol(X.train))
-
         pred.mat <- X.train %*% t(W)
+
+
         if(is.binary)
         {
-          loss.mat <- ifelse(y.vec == 1, 1, -1) != Y.valid
+          loss.mat <- ifelse(pred.mat > 0.5 , 1, 0) != Y.train
+          print(nrow(loss.mat))
+          print(ncol(loss.mat))
+          print("COLUMN")
+          print(ncol(X.mat))
           train.loss.mat[, fold.i] <- colMeans(loss.mat)
         }
         else
@@ -216,11 +219,11 @@ LinearModelL1CV <- function(
         }
       }
       else{
-        W <- LinearModelL1penalties(X.train, y.train)
-        pred.mat <- X.train %*% t(W)
+        W <- LinearModelL1penalties(X.valid, Y.valid)
+        pred.mat <- X.valid %*% t(W)
         if(is.binary)
         {
-          loss.mat <- ifelse(y.vec == 1, 1, -1) != Y.train
+          loss.mat <-  ifelse(pred.mat > 0.5 , 1, 0) != Y.valid
           validation.loss.mat[,fold.i] = colMeans(loss.mat)
         }
         validation.loss.mat[,fold.i] = colMeans((pred.mat - Y.valid)^2)
@@ -255,9 +258,11 @@ table(zip.train[, 2])
 
 all.y.vec <- zip.train[, 1]
 is.01 <- all.y.vec %in% c(0,1)
-y.vec <- all.y.vec[is.01]
-X.mat <- zip.train[is.01, -1]
 
+y.vec <- all.y.vec[is.01]
+y.vec <- y.vec[0:50]
+X.mat <- zip.train[is.01, -1]
+X.mat <- X.mat[0:50, ]
 X.sc <- scale(X.mat)
 
 LinearModelL1CV(X.mat, y.vec)
