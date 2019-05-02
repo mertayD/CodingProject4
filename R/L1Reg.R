@@ -1,5 +1,3 @@
-
-
 LinearModelL1 <- function(X.mat, y.vec, penalty, opt.thresh=0.001, intial.weight.vec, step.size=0.1) {
 
   y.tilde <- ifelse(y.vec == 1, 1, -1)
@@ -114,5 +112,5 @@ X.mat <- zip.train[is.01, -1]
 
 table(is.01)
 
-LinearModelL1(X.mat=X.mat, y.vec=y.vec, penalty=10, opt.thresh=0.001,intial.weight.vec =  NULL, step.size = 0.1)
+#LinearModelL1(X.mat=X.mat, y.vec=y.vec, penalty=10, opt.thresh=0.001,intial.weight.vec =  NULL, step.size = 0.1)
 #LinearModelL1penalties(X.mat, y.vec, )
