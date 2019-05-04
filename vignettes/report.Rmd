@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 
 
 ```{r data}
-usethis::use_package("CodingProject4")
-usethis::use_package("ggplot2")
+library("CodingProject4")
+library("ggplot2")
 data.name.vec <- c(
   "spam",
   "SAheart",
@@ -87,7 +87,7 @@ for(fold.i in 1:5)
   baseline.prediction <- mode(Y.test)
   
   # prediction.on.s
-  resultES <- LinearModelL1CV(X.train,
+  resultES <- CodingProject4::LinearModelL1CV(X.train,
                               y.train,
                               fold.vec=sample(rep(1:4, l=nrow(X.mat))),
                               n.folds=4,
@@ -293,12 +293,12 @@ lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
 
 # for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
 
-resultTotal <- LinearModelL1CV( X.mat,
-                                y.vec,
-                                fold.vec=sample(rep(1:4, l=nrow(X.mat))),
-                                n.folds=4,
-                                penalty.vec=c(5,4,3,2,1),
-                                step.size=0.5)
+# resultTotal <- LinearModelL1CV( X.mat,
+#                                 y.vec,
+#                                 fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+#                                 n.folds=4,
+#                                 penalty.vec=c(5,4,3,2,1),
+#                                 step.size=0.5)
 
 
 plot(resultTotal$mean.train.loss, col = "green")
@@ -320,57 +320,69 @@ y.vec <- one.data.set$label.vec
 mean.test.loss.values <- matrix(, nrow=5, ncol=2)
 
 # For each data set, use 5-fold cross-validation to evaluate the prediction accuracy of your code. For each split, set aside the data in fold s as a test set. Use LinearModelL1CV to train a model on the other folds (which should be used in your function as internal train/validation sets/splits), then make a prediction on the test fold s.
-fold.vec=sample(rep(1:5, l=nrow(X.mat)))
-for(fold.i in 1:5)
-{
-  fold_data <- which(fold.vec %in% c(fold.i))
-
-  X.test <- X.mat[-fold_data ,]
-  X.train <- X.mat[fold_data ,]
-
-  Y.test <- y.vec[-fold_data]
-  Y.train <- y.vec[fold_data]
-  
-  # compute a baseline predictor that ignores the inputs/features.
-    # Regression: the mean of the training labels/outputs.
-    # Binary classification: the most frequent class/label/output in the training data.
-  baseline.prediction <- mean(Y.test)
-  
-  # prediction.on.s
-  resultES <- LinearModelL1CV(X.train,
-                              y.train,
-                              fold.vec=sample(rep(1:4, l=nrow(X.mat))),
-                              n.folds=4,
-                              penalty.vec=c(5,4,3,2,1),
-                              step.size=0.5)
-  
-  
-  mean.test.loss.values[[fold.i, 1]] <- resultES$predict(X.test)
-  mean.test.loss.values[[fold.i, 2]] <- baseline.prediction
-}
-
-# Make one or more plot(s) or table(s) that compares these test loss values. For each of the five data sets, is the L1-regularized linear model more accurate than the baseline?
-
-plot(colMeans(mean.test.loss.values)[[1]], col = "green")
-lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
-
-# for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
-
-resultTotal <- LinearModelL1CV( X.mat,
-                                y.vec,
-                                fold.vec=sample(rep(1:4, l=nrow(X.mat))),
-                                n.folds=4,
-                                penalty.vec=c(5,4,3,2,1),
-                                step.size=0.5)
-
-
-plot(resultTotal$mean.train.loss, col = "green")
-lines(resultTotal$mean.validation.loss, col = "blue")
-  
+# fold.vec=sample(rep(1:5, l=nrow(X.mat)))
+# for(fold.i in 1:5)
+# {
+#   fold_data <- which(fold.vec %in% c(fold.i))
+# 
+#   X.test <- X.mat[-fold_data ,]
+#   X.train <- X.mat[fold_data ,]
+# 
+#   Y.test <- y.vec[-fold_data]
+#   Y.train <- y.vec[fold_data]
+#   
+#   # compute a baseline predictor that ignores the inputs/features.
+#     # Regression: the mean of the training labels/outputs.
+#     # Binary classification: the most frequent class/label/output in the training data.
+#   baseline.prediction <- mean(Y.test)
+#   
+#   # prediction.on.s
+#   resultES <- LinearModelL1CV(X.train,
+#                               y.train,
+#                               fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+#                               n.folds=4,
+#                               penalty.vec=c(5,4,3,2,1),
+#                               step.size=0.5)
+#   
+#   
+#   mean.test.loss.values[[fold.i, 1]] <- resultES$predict(X.test)
+#   mean.test.loss.values[[fold.i, 2]] <- baseline.prediction
+# }
+# 
+# # Make one or more plot(s) or table(s) that compares these test loss values. For each of the five data sets, is the L1-regularized linear model more accurate than the baseline?
+# 
+# plot(colMeans(mean.test.loss.values)[[1]], col = "green")
+# lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
+# 
+# # for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
+# 
+# resultTotal <- LinearModelL1CV( X.mat,
+#                                 y.vec,
+#                                 fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+#                                 n.folds=4,
+#                                 penalty.vec=c(5,4,3,2,1),
+#                                 step.size=0.5)
+# 
+# 
+# plot(resultTotal$mean.train.loss, col = "green")
+# lines(resultTotal$mean.validation.loss, col = "blue")
+#   
 ```
 ```
 ```
+What are the optimal regularization parameters?
 
+# Loss
+$L(w,v) = \frac{1}2 \times [\Sigma^{n}_{1}[w^{t}S[V^{T}x_{i}] - y_{i}]^2]$
+
+# Gradient/Backprop
+1. $A = XV$
+2. $Z = S[A]$
+3. $b = ZW$
+4. $\delta^{w} = b - y$
+5. $\delta^{v} = Diag(\delta^{v}) \times S'[A] \times Diag(w)$
+6. $\nabla_{w}L(w,v) = (Z^{t} \delta^{w}) / n$
+7. $\nabla_{v}L(w,v) = (X^{t} \delta^{v}) / n$
 
   
 ```
