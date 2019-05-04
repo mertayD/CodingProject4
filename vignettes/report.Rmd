@@ -75,11 +75,11 @@ for(fold.i in 1:5)
 {
   fold_data <- which(fold.vec %in% c(fold.i))
 
-  X.test <- X.mat[-fold_data ,]
-  X.train <- X.mat[fold_data ,]
+  X.test <- X.mat[fold_data ,]
+  X.train <- X.mat[-fold_data ,]
 
-  Y.test <- y.vec[-fold_data]
-  Y.train <- y.vec[fold_data]
+  Y.test <- y.vec[fold_data]
+  Y.train <- y.vec[-fold_data]
   
   # compute a baseline predictor that ignores the inputs/features.
     # Regression: the mean of the training labels/outputs.
