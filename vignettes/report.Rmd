@@ -1,0 +1,379 @@
+---
+title: "Vignette Title"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r data}
+usethis::use_package("CodingProject4")
+usethis::use_package("ggplot2")
+data.name.vec <- c(
+  "spam",
+  "SAheart",
+  "zip.train",
+  "prostate",
+  "ozone")
+data.list <- list()
+library(ElemStatLearn)
+for(data.name in data.name.vec)
+{
+  data(list = data.name, package="ElemStatLearn")
+  data.list[[data.name]] <- get(data.name)
+}
+str(data.list)
+is.binary <- ElemStatLearn::zip.train[,1] %in% c(0,1)
+data.list <- list(
+  spam=list(
+    label.vec=ifelse(ElemStatLearn::spam$spam=="spam", 1, 0),
+    feature.mat=as.matrix(ElemStatLearn::spam[, 1:57])),
+  SAheart=list(
+    label.vec=ifelse(ElemStatLearn::SAheart$SAheart=="chd", 1, 0),
+    feature.mat=as.matrix(ElemStatLearn::SAheart[, -ncol(ElemStatLearn::SAheart)])),
+  zip.train=list(
+    label.vec=ElemStatLearn::zip.train[is.binary,1],
+    feature.mat=ElemStatLearn::zip.train[is.binary,-1]),
+  prostate=list(
+    label.vec=as.numeric(ElemStatLearn::prostate$lpsa),
+    feature.mat=as.matrix(ElemStatLearn::prostate[,-c(9, 10)])),
+  ozone=list(
+    label.vec=ElemStatLearn::ozone$ozone,
+    feature.mat=as.matrix(ElemStatLearn::ozone[,-1]))
+)
+
+# str(data.list)
+
+################################################# SPAM ########################################################
+
+data.name = "spam"
+one.data.set <- data.list[[data.name]]
+
+X.mat <- one.data.set$feature.mat
+y.vec <- one.data.set$label.vec
+
+# mean.test.loss.values
+  # each of the rows are for a specific test set
+  # the first column is for the L1-regularized linear model predictor
+  # the second column is for the baseline/un-informed predictor
+mean.test.loss.values <- matrix(, nrow=5, ncol=2)
+
+# For each data set, use 5-fold cross-validation to evaluate the prediction accuracy of your code. For each split, set aside the data in fold s as a test set. Use LinearModelL1CV to train a model on the other folds (which should be used in your function as internal train/validation sets/splits), then make a prediction on the test fold s.
+fold.vec=sample(rep(1:5, l=nrow(X.mat)))
+for(fold.i in 1:5)
+{
+  fold_data <- which(fold.vec %in% c(fold.i))
+
+  X.test <- X.mat[-fold_data ,]
+  X.train <- X.mat[fold_data ,]
+
+  Y.test <- y.vec[-fold_data]
+  Y.train <- y.vec[fold_data]
+  
+  # compute a baseline predictor that ignores the inputs/features.
+    # Regression: the mean of the training labels/outputs.
+    # Binary classification: the most frequent class/label/output in the training data.
+  baseline.prediction <- mode(Y.test)
+  
+  # prediction.on.s
+  resultES <- LinearModelL1CV(X.train,
+                              y.train,
+                              fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                              n.folds=4,
+                              penalty.vec=c(5,4,3,2,1),
+                              step.size=0.5)
+  
+  
+  mean.test.loss.values[[fold.i, 1]] <- resultES$predict(X.test)
+  mean.test.loss.values[[fold.i, 2]] <- baseline.prediction
+}
+
+# Make one or more plot(s) or table(s) that compares these test loss values. For each of the five data sets, is the L1-regularized linear model more accurate than the baseline?
+
+plot(colMeans(mean.test.loss.values)[[1]], col = "green")
+lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
+
+# for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
+
+resultTotal <- LinearModelL1CV( X.mat,
+                                y.vec,
+                                fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                                n.folds=4,
+                                penalty.vec=c(5,4,3,2,1),
+                                step.size=0.5)
+
+
+plot(resultTotal$mean.train.loss, col = "green")
+lines(resultTotal$mean.validation.loss, col = "blue")
+
+################################################# SAHEART ########################################################
+
+data.name = "SAheart"
+one.data.set <- data.list[[data.name]]
+
+X.mat <- one.data.set$feature.mat
+y.vec <- one.data.set$label.vec
+
+# mean.test.loss.values
+  # each of the rows are for a specific test set
+  # the first column is for the L1-regularized linear model predictor
+  # the second column is for the baseline/un-informed predictor
+mean.test.loss.values <- matrix(, nrow=5, ncol=2)
+
+# For each data set, use 5-fold cross-validation to evaluate the prediction accuracy of your code. For each split, set aside the data in fold s as a test set. Use LinearModelL1CV to train a model on the other folds (which should be used in your function as internal train/validation sets/splits), then make a prediction on the test fold s.
+fold.vec=sample(rep(1:5, l=nrow(X.mat)))
+for(fold.i in 1:5)
+{
+  fold_data <- which(fold.vec %in% c(fold.i))
+
+  X.test <- X.mat[-fold_data ,]
+  X.train <- X.mat[fold_data ,]
+
+  Y.test <- y.vec[-fold_data]
+  Y.train <- y.vec[fold_data]
+  
+  # compute a baseline predictor that ignores the inputs/features.
+    # Regression: the mean of the training labels/outputs.
+    # Binary classification: the most frequent class/label/output in the training data.
+  baseline.prediction <- mode(Y.test)
+  
+  # prediction.on.s
+  resultES <- LinearModelL1CV(X.train,
+                              y.train,
+                              fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                              n.folds=4,
+                              penalty.vec=c(5,4,3,2,1),
+                              step.size=0.5)
+  
+  
+  mean.test.loss.values[[fold.i, 1]] <- resultES$predict(X.test)
+  mean.test.loss.values[[fold.i, 2]] <- baseline.prediction
+}
+
+# Make one or more plot(s) or table(s) that compares these test loss values. For each of the five data sets, is the L1-regularized linear model more accurate than the baseline?
+
+plot(colMeans(mean.test.loss.values)[[1]], col = "green")
+lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
+
+# for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
+
+resultTotal <- LinearModelL1CV( X.mat,
+                                y.vec,
+                                fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                                n.folds=4,
+                                penalty.vec=c(5,4,3,2,1),
+                                step.size=0.5)
+
+
+plot(resultTotal$mean.train.loss, col = "green")
+lines(resultTotal$mean.validation.loss, col = "blue")
+
+################################################# Zip.Train ########################################################
+
+data.name = "zip.train"
+one.data.set <- data.list[[data.name]]
+
+X.mat <- one.data.set$feature.mat
+y.vec <- one.data.set$label.vec
+
+# mean.test.loss.values
+  # each of the rows are for a specific test set
+  # the first column is for the L1-regularized linear model predictor
+  # the second column is for the baseline/un-informed predictor
+mean.test.loss.values <- matrix(, nrow=5, ncol=2)
+
+# For each data set, use 5-fold cross-validation to evaluate the prediction accuracy of your code. For each split, set aside the data in fold s as a test set. Use LinearModelL1CV to train a model on the other folds (which should be used in your function as internal train/validation sets/splits), then make a prediction on the test fold s.
+fold.vec=sample(rep(1:5, l=nrow(X.mat)))
+for(fold.i in 1:5)
+{
+  fold_data <- which(fold.vec %in% c(fold.i))
+
+  X.test <- X.mat[-fold_data ,]
+  X.train <- X.mat[fold_data ,]
+
+  Y.test <- y.vec[-fold_data]
+  Y.train <- y.vec[fold_data]
+  
+  # compute a baseline predictor that ignores the inputs/features.
+    # Regression: the mean of the training labels/outputs.
+    # Binary classification: the most frequent class/label/output in the training data.
+  baseline.prediction <- mode(Y.test)
+  
+  # prediction.on.s
+  resultES <- LinearModelL1CV(X.train,
+                              y.train,
+                              fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                              n.folds=4,
+                              penalty.vec=c(5,4,3,2,1),
+                              step.size=0.5)
+  
+  
+  mean.test.loss.values[[fold.i, 1]] <- resultES$predict(X.test)
+  mean.test.loss.values[[fold.i, 2]] <- baseline.prediction
+}
+
+# Make one or more plot(s) or table(s) that compares these test loss values. For each of the five data sets, is the L1-regularized linear model more accurate than the baseline?
+
+plot(colMeans(mean.test.loss.values)[[1]], col = "green")
+lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
+
+# for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
+
+resultTotal <- LinearModelL1CV( X.mat,
+                                y.vec,
+                                fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                                n.folds=4,
+                                penalty.vec=c(5,4,3,2,1),
+                                step.size=0.5)
+
+
+plot(resultTotal$mean.train.loss, col = "green")
+lines(resultTotal$mean.validation.loss, col = "blue")
+  
+
+################################################# prostate ########################################################
+
+data.name = "prostate"
+one.data.set <- data.list[[data.name]]
+
+X.mat <- one.data.set$feature.mat
+y.vec <- one.data.set$label.vec
+
+# mean.test.loss.values
+  # each of the rows are for a specific test set
+  # the first column is for the L1-regularized linear model predictor
+  # the second column is for the baseline/un-informed predictor
+mean.test.loss.values <- matrix(, nrow=5, ncol=2)
+
+# For each data set, use 5-fold cross-validation to evaluate the prediction accuracy of your code. For each split, set aside the data in fold s as a test set. Use LinearModelL1CV to train a model on the other folds (which should be used in your function as internal train/validation sets/splits), then make a prediction on the test fold s.
+fold.vec=sample(rep(1:5, l=nrow(X.mat)))
+for(fold.i in 1:5)
+{
+  fold_data <- which(fold.vec %in% c(fold.i))
+
+  X.test <- X.mat[-fold_data ,]
+  X.train <- X.mat[fold_data ,]
+
+  Y.test <- y.vec[-fold_data]
+  Y.train <- y.vec[fold_data]
+  
+  # compute a baseline predictor that ignores the inputs/features.
+    # Regression: the mean of the training labels/outputs.
+    # Binary classification: the most frequent class/label/output in the training data.
+  baseline.prediction <- mean(Y.test)
+  
+  # prediction.on.s
+  resultES <- LinearModelL1CV(X.train,
+                              y.train,
+                              fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                              n.folds=4,
+                              penalty.vec=c(5,4,3,2,1),
+                              step.size=0.5)
+  
+  
+  mean.test.loss.values[[fold.i, 1]] <- resultES$predict(X.test)
+  mean.test.loss.values[[fold.i, 2]] <- baseline.prediction
+}
+
+# Make one or more plot(s) or table(s) that compares these test loss values. For each of the five data sets, is the L1-regularized linear model more accurate than the baseline?
+
+plot(colMeans(mean.test.loss.values)[[1]], col = "green")
+lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
+
+# for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
+
+resultTotal <- LinearModelL1CV( X.mat,
+                                y.vec,
+                                fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                                n.folds=4,
+                                penalty.vec=c(5,4,3,2,1),
+                                step.size=0.5)
+
+
+plot(resultTotal$mean.train.loss, col = "green")
+lines(resultTotal$mean.validation.loss, col = "blue")
+  
+
+################################################# OZONE ########################################################
+
+data.name = "ozone"
+one.data.set <- data.list[[data.name]]
+
+X.mat <- one.data.set$feature.mat
+y.vec <- one.data.set$label.vec
+
+# mean.test.loss.values
+  # each of the rows are for a specific test set
+  # the first column is for the L1-regularized linear model predictor
+  # the second column is for the baseline/un-informed predictor
+mean.test.loss.values <- matrix(, nrow=5, ncol=2)
+
+# For each data set, use 5-fold cross-validation to evaluate the prediction accuracy of your code. For each split, set aside the data in fold s as a test set. Use LinearModelL1CV to train a model on the other folds (which should be used in your function as internal train/validation sets/splits), then make a prediction on the test fold s.
+fold.vec=sample(rep(1:5, l=nrow(X.mat)))
+for(fold.i in 1:5)
+{
+  fold_data <- which(fold.vec %in% c(fold.i))
+
+  X.test <- X.mat[-fold_data ,]
+  X.train <- X.mat[fold_data ,]
+
+  Y.test <- y.vec[-fold_data]
+  Y.train <- y.vec[fold_data]
+  
+  # compute a baseline predictor that ignores the inputs/features.
+    # Regression: the mean of the training labels/outputs.
+    # Binary classification: the most frequent class/label/output in the training data.
+  baseline.prediction <- mean(Y.test)
+  
+  # prediction.on.s
+  resultES <- LinearModelL1CV(X.train,
+                              y.train,
+                              fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                              n.folds=4,
+                              penalty.vec=c(5,4,3,2,1),
+                              step.size=0.5)
+  
+  
+  mean.test.loss.values[[fold.i, 1]] <- resultES$predict(X.test)
+  mean.test.loss.values[[fold.i, 2]] <- baseline.prediction
+}
+
+# Make one or more plot(s) or table(s) that compares these test loss values. For each of the five data sets, is the L1-regularized linear model more accurate than the baseline?
+
+plot(colMeans(mean.test.loss.values)[[1]], col = "green")
+lines(colMeans(mean.test.loss.values)[[2]], col = "blue")
+
+# for each data set, run LinearModelL1CV on the entire data set and plot the mean validation loss as a function of the regularization parameter. Plot the mean train loss in one color, and the mean validation loss in another color. Plot a point and/or text label to emphasize the regularization parameter selected by minimizing the mean validation loss function.
+
+resultTotal <- LinearModelL1CV( X.mat,
+                                y.vec,
+                                fold.vec=sample(rep(1:4, l=nrow(X.mat))),
+                                n.folds=4,
+                                penalty.vec=c(5,4,3,2,1),
+                                step.size=0.5)
+
+
+plot(resultTotal$mean.train.loss, col = "green")
+lines(resultTotal$mean.validation.loss, col = "blue")
+  
+```
+```
+```
+
+
+  
+```
+
+  
+```
