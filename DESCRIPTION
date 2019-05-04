@@ -1,11 +1,10 @@
 Package: CodingProject4
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Linear Model with L1 Penalty
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Mertay Deyanc, Tyler Thatcher, Kaitlyn Grubb
+Maintainer: Mertay <md2289@nau.edu>
+Description: R package that implments optimization algorithms for linear modesl with L1-regularization
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
