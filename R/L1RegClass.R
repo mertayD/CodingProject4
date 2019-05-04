@@ -184,16 +184,16 @@ LinearModelL1CV <- function(
   train.loss.mat <- matrix(, ncol(X.mat), n.folds)
   validation.loss.mat <- matrix(, ncol(X.mat), n.folds)
 
-  # n.folds <- max(fold.vec)
+  n.folds <- max(fold.vec)
   for(fold.i in 1:n.folds)
   {
     fold_data <- which(fold.vec %in% c(fold.i))
 
-    X.train <- X.mat[-fold_data ,]
-    X.valid <- X.mat[fold_data ,]
+    X.train <- X.mat[fold_data ,]
+    X.valid <- X.mat[-fold_data ,]
 
-    Y.train <- y.vec[-fold_data]
-    Y.valid <- y.vec[fold_data]
+    Y.train <- y.vec[fold_data]
+    Y.valid <- y.vec[-fold_data]
 
     # n_rows_validation_set <- nrow(validation_set)
     # n_rows_train_set <- nrow(train_set)
@@ -201,12 +201,7 @@ LinearModelL1CV <- function(
     for(prediction.set.name in c("train", "validation")){
       if(identical(prediction.set.name, "train")){
         W <- LinearModelL1penalties(X.train, Y.train)
-
-        print(nrow(t(W)))
-        print(ncol(t(W)))
-        print(nrow(X.train))
-        print(ncol(X.train))
-
+        
         pred.mat <- X.train %*% t(W)
         if(is.binary)
         {

@@ -34,5 +34,5 @@ LinearModelL1penalties <- function(
     new.w.vec <- LinearModelL1(X.int, y.vec, penalty=penalty.vec[lambda], opt.thresh = 0.01,initial.weight.vec=new.w.vec, step.size=step.size)
     W.mat[lambda, ] <- new.w.vec
   }
-  return(W.mat)
+  return(t(W.mat))
 }
